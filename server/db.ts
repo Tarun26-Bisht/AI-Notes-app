@@ -11,9 +11,10 @@ export interface UserRecord {
   id: string;
   name: string;
   email: string;
-  passwordHash: string;
-  salt: string;
-  avatarColor: string;
+  passwordHash?: string;
+  salt?: string;
+  avatarColor?: string;
+  photoURL?: string;
   createdAt: string;
 }
 
@@ -448,7 +449,7 @@ Check the action items below to get started!`,
   public authenticate(email: string, password: string): { user: User; token: string } | null {
     const normalizedEmail = email.trim().toLowerCase();
     const record = this.users.find((u) => u.email.toLowerCase() === normalizedEmail);
-    if (!record) return null;
+    if (!record || !record.salt || !record.passwordHash) return null;
 
     const hash = hashPassword(password, record.salt);
     if (hash !== record.passwordHash) return null;
@@ -492,12 +493,84 @@ Check the action items below to get started!`,
     return this.sanitizeUser(record);
   }
 
+  public upsertGoogleUser(googleUser: { uid: string; email: string; name: string; photoURL?: string }): { user: User; token: string } {
+    const normalizedEmail = googleUser.email.trim().toLowerCase();
+    let record = this.users.find(
+      (u) => u.email.toLowerCase() === normalizedEmail || u.id === `usr_google_${googleUser.uid}`
+    );
+
+    if (record) {
+      if (googleUser.name && (!record.name || record.name === 'Google User')) {
+        record.name = googleUser.name;
+      }
+      if (googleUser.photoURL) {
+        record.photoURL = googleUser.photoURL;
+      }
+      this.persistUsers();
+    } else {
+      const colors = ['#2563EB', '#7C3AED', '#059669', '#D97706', '#DB2777', '#0891B2'];
+      const avatarColor = colors[Math.floor(Math.random() * colors.length)];
+      const userId = `usr_google_${googleUser.uid}`;
+      const now = new Date().toISOString();
+
+      record = {
+        id: userId,
+        name: googleUser.name || 'Google User',
+        email: normalizedEmail,
+        avatarColor,
+        photoURL: googleUser.photoURL,
+        createdAt: now
+      };
+
+      this.users.push(record);
+      this.persistUsers();
+
+      // Seed personalized starter notes for this Google-authenticated user
+      const welcomeNote: SmartNote = {
+        id: `note_welcome_${Date.now()}`,
+        userId: userId,
+        title: `Welcome to SmartNotes, ${googleUser.name.split(' ')[0] || 'Friend'}!`,
+        sourceType: 'text',
+        rawContent: `Your Google account (${googleUser.email}) is successfully linked. You now have full cloud-synced access to private study guides, audio lecture transcriptions, exam quizzes, and action item tracking.`,
+        executiveSummary: `# 🎓 Welcome to Your Cloud-Synced Smart Notes Vault
+
+### 1. 🔒 Verified Google Authentication
+Your workspace is authenticated with your Google Account. All uploaded audio recordings, PDF notes, camera scans, and generated exam practice questions are strictly scoped to your profile.
+
+### 2. ⚡ Multi-Modal Superpowers
+• **Voice Memos**: Record lectures or meetings with instant Gemini synthesis.
+• **Camera OCR**: Digitize physical notes, handwriting, and whiteboard diagrams.
+• **Exam Practice Quizzes**: Generate university-grade MCQs directly from your notes.`,
+        actionItems: [
+          { id: `act_g1_${Date.now()}`, text: 'Upload your first lecture audio recording or PDF textbook chapter', completed: false, priority: 'high' },
+          { id: `act_g2_${Date.now()}`, text: 'Generate an active recall practice quiz to test your retention', completed: false, priority: 'medium' },
+          { id: `act_g3_${Date.now()}`, text: 'Organize your study cards using automated topic tags', completed: true, priority: 'low' }
+        ],
+        tags: ['Google-Account', 'Getting-Started', 'Exam-Prep', 'SmartNotes'],
+        createdAt: now,
+        updatedAt: now,
+        sentiment: 'positive',
+        estimatedReadTime: '1 min read'
+      };
+
+      this.notes.unshift(welcomeNote);
+      this.persistNotes();
+    }
+
+    const token = this.createSession(record.id);
+    return {
+      user: this.sanitizeUser(record),
+      token
+    };
+  }
+
   private sanitizeUser(record: UserRecord): User {
     return {
       id: record.id,
       name: record.name,
       email: record.email,
       avatarColor: record.avatarColor,
+      photoURL: record.photoURL,
       createdAt: record.createdAt
     };
   }

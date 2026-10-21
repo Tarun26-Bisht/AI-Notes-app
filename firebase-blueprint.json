@@ -1,0 +1,56 @@
+{
+  "entities": {
+    "UserProfile": {
+      "title": "UserProfile",
+      "description": "User profile data populated upon authentication",
+      "type": "object",
+      "properties": {
+        "uid": { "type": "string", "description": "Firebase Auth UID" },
+        "email": { "type": "string", "format": "email", "description": "User email address" },
+        "displayName": { "type": "string", "description": "User display name", "maxLength": 100 },
+        "photoURL": { "type": "string", "description": "Avatar photo URL", "maxLength": 500 },
+        "createdAt": { "type": "string", "description": "Account registration timestamp" },
+        "updatedAt": { "type": "string", "description": "Last profile update timestamp" }
+      },
+      "required": ["uid", "email"]
+    },
+    "Note": {
+      "title": "Note",
+      "description": "Smart note document containing synthesis, tags, and action items",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string", "description": "Note unique ID" },
+        "userId": { "type": "string", "description": "Owner Firebase UID" },
+        "title": { "type": "string", "description": "Note title", "maxLength": 200 },
+        "sourceType": { "type": "string", "description": "Source modality", "enum": ["text", "pdf", "audio", "handwritten"] },
+        "originalFileName": { "type": "string", "description": "Original uploaded file name", "maxLength": 255 },
+        "rawContent": { "type": "string", "description": "Extracted OCR text or speech transcript", "maxLength": 100000 },
+        "executiveSummary": { "type": "string", "description": "Comprehensive structured study guide markdown", "maxLength": 100000 },
+        "actionItems": {
+          "type": "array",
+          "description": "Action items extracted from the note"
+        },
+        "tags": {
+          "type": "array",
+          "description": "Topic tags"
+        },
+        "sentiment": { "type": "string", "description": "Sentiment or urgency indicator", "enum": ["positive", "neutral", "urgent"] },
+        "estimatedReadTime": { "type": "string", "description": "Estimated reading time", "maxLength": 30 },
+        "isArchived": { "type": "boolean", "description": "Whether note is archived" },
+        "createdAt": { "type": "string", "description": "Creation timestamp" },
+        "updatedAt": { "type": "string", "description": "Update timestamp" }
+      },
+      "required": ["userId", "title", "sourceType"]
+    }
+  },
+  "firestore": {
+    "/users/{userId}": {
+      "schema": "#entities/UserProfile",
+      "description": "Private user profile documents"
+    },
+    "/users/{userId}/notes/{noteId}": {
+      "schema": "#entities/Note",
+      "description": "User-isolated smart notes subcollection"
+    }
+  }
+}

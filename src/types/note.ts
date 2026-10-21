@@ -12,6 +12,7 @@ export interface User {
   name: string;
   email: string;
   avatarColor?: string;
+  photoURL?: string;
   createdAt: string;
 }
 

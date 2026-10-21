@@ -25,5 +25,13 @@
     "salt": "0643c4781d028065fa85e07d2d47bdd6",
     "avatarColor": "#0891B2",
     "createdAt": "2026-10-21T05:48:59.100Z"
+  },
+  {
+    "id": "usr_google_test_g_123",
+    "name": "Test Google User",
+    "email": "testuser@example.com",
+    "avatarColor": "#7C3AED",
+    "photoURL": "https://lh3.googleusercontent.com/a/default",
+    "createdAt": "2026-10-21T07:08:09.978Z"
   }
 ]

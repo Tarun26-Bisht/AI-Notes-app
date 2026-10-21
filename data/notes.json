@@ -1,5 +1,43 @@
 [
   {
+    "id": "note_welcome_1792566489978",
+    "userId": "usr_google_test_g_123",
+    "title": "Welcome to SmartNotes, Test!",
+    "sourceType": "text",
+    "rawContent": "Your Google account (testuser@example.com) is successfully linked. You now have full cloud-synced access to private study guides, audio lecture transcriptions, exam quizzes, and action item tracking.",
+    "executiveSummary": "# 🎓 Welcome to Your Cloud-Synced Smart Notes Vault\n\n### 1. 🔒 Verified Google Authentication\nYour workspace is authenticated with your Google Account. All uploaded audio recordings, PDF notes, camera scans, and generated exam practice questions are strictly scoped to your profile.\n\n### 2. ⚡ Multi-Modal Superpowers\n• **Voice Memos**: Record lectures or meetings with instant Gemini synthesis.\n• **Camera OCR**: Digitize physical notes, handwriting, and whiteboard diagrams.\n• **Exam Practice Quizzes**: Generate university-grade MCQs directly from your notes.",
+    "actionItems": [
+      {
+        "id": "act_g1_1792566489978",
+        "text": "Upload your first lecture audio recording or PDF textbook chapter",
+        "completed": false,
+        "priority": "high"
+      },
+      {
+        "id": "act_g2_1792566489978",
+        "text": "Generate an active recall practice quiz to test your retention",
+        "completed": false,
+        "priority": "medium"
+      },
+      {
+        "id": "act_g3_1792566489978",
+        "text": "Organize your study cards using automated topic tags",
+        "completed": true,
+        "priority": "low"
+      }
+    ],
+    "tags": [
+      "Google-Account",
+      "Getting-Started",
+      "Exam-Prep",
+      "SmartNotes"
+    ],
+    "createdAt": "2026-10-21T07:08:09.978Z",
+    "updatedAt": "2026-10-21T07:08:09.978Z",
+    "sentiment": "positive",
+    "estimatedReadTime": "1 min read"
+  },
+  {
     "id": "note_welcome_1792561739100",
     "userId": "usr_1792561739100_2q0f0",
     "title": "Welcome to Your Private Smart Notes Hub, David!",

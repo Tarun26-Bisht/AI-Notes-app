@@ -92,6 +92,27 @@ app.post('/api/auth/login', (req: Request, res: Response) => {
   }
 });
 
+// POST /api/auth/google
+app.post('/api/auth/google', (req: Request, res: Response) => {
+  try {
+    const { uid, email, name, photoURL } = req.body;
+    if (!uid || !email) {
+      return res.status(400).json({ error: 'Valid Google authentication data required.' });
+    }
+
+    const authResult = db.upsertGoogleUser({
+      uid: String(uid),
+      email: String(email),
+      name: name ? String(name) : 'Google User',
+      photoURL: photoURL ? String(photoURL) : undefined
+    });
+
+    res.json(authResult);
+  } catch (err: any) {
+    res.status(500).json({ error: err?.message || 'Google sign-in sync failed.' });
+  }
+});
+
 // GET /api/auth/me
 app.get('/api/auth/me', requireAuth, (req: AuthenticatedRequest, res: Response) => {
   res.json({ user: req.user });

@@ -159,13 +159,21 @@ export const TopNavBar: React.FC<TopNavBarProps> = ({
                 className="flex items-center gap-2 p-1.5 rounded-lg hover:bg-slate-100 transition-colors border border-slate-200/80 cursor-pointer"
                 title={`${currentUser.name} (${currentUser.email})`}
               >
-                <div
-                  className="w-8 h-8 rounded-full flex items-center justify-center text-white font-bold text-xs shadow-xs"
-                  style={{ backgroundColor: currentUser.avatarColor || '#2563EB' }}
-                >
-                  {getInitials(currentUser.name)}
-                </div>
-                <div className="hidden lg:block text-left max-w-32 truncate">
+                {currentUser.photoURL ? (
+                  <img
+                    src={currentUser.photoURL}
+                    alt={currentUser.name}
+                    className="w-8 h-8 rounded-full object-cover ring-2 ring-blue-500/30"
+                  />
+                ) : (
+                  <div
+                    className="w-8 h-8 rounded-full flex items-center justify-center text-white font-bold text-xs shadow-xs"
+                    style={{ backgroundColor: currentUser.avatarColor || '#2563EB' }}
+                  >
+                    {getInitials(currentUser.name)}
+                  </div>
+                )}
+                <div className="hidden lg:block text-left max-w-36 truncate">
                   <p className="text-xs font-bold text-slate-900 truncate leading-tight">
                     {currentUser.name}
                   </p>

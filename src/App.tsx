@@ -10,6 +10,7 @@ import { TaxonomyView } from './components/TaxonomyView';
 import { ArchiveView } from './components/ArchiveView';
 import { AuthPage } from './components/AuthPage';
 import { QuizPracticeView } from './components/QuizPracticeView';
+import { signOutFromFirebase } from './firebase';
 import {
   Search,
   X,
@@ -178,6 +179,12 @@ export default function App() {
 
   // Handle logout
   const handleLogout = async () => {
+    try {
+      await signOutFromFirebase();
+    } catch {
+      // Ignore firebase signout errors
+    }
+
     try {
       if (token) {
         await fetch('/api/auth/logout', {
