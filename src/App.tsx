@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { SmartNote, WorkspaceStats, TagCount } from './types/note';
+import { SmartNote, WorkspaceStats, TagCount, User, AuthResponse } from './types/note';
 import { TopNavBar } from './components/TopNavBar';
 import { StatsBar } from './components/StatsBar';
 import { NoteCard } from './components/NoteCard';
@@ -8,18 +8,24 @@ import { NoteDetailModal } from './components/NoteDetailModal';
 import { ActionTrackerView } from './components/ActionTrackerView';
 import { TaxonomyView } from './components/TaxonomyView';
 import { ArchiveView } from './components/ArchiveView';
+import { AuthPage } from './components/AuthPage';
+import { QuizPracticeView } from './components/QuizPracticeView';
 import {
   Search,
-  Mic,
-  Camera,
-  UploadCloud,
   X,
   FileQuestion,
   RefreshCw,
-  Plus
+  Plus,
+  Loader2
 } from 'lucide-react';
 
 export default function App() {
+  // Auth state
+  const [currentUser, setCurrentUser] = useState<User | null>(null);
+  const [token, setToken] = useState<string | null>(() => localStorage.getItem('smartnotes_auth_token'));
+  const [isAuthChecking, setIsAuthChecking] = useState<boolean>(true);
+
+  // Notes & workspace state
   const [notes, setNotes] = useState<SmartNote[]>([]);
   const [stats, setStats] = useState<WorkspaceStats>({
     totalNotes: 0,
@@ -35,7 +41,7 @@ export default function App() {
   const [tags, setTags] = useState<TagCount[]>([]);
 
   // Navigation & View state
-  const [activeView, setActiveView] = useState<'notes' | 'actions' | 'taxonomy' | 'archive'>('notes');
+  const [activeView, setActiveView] = useState<'notes' | 'actions' | 'taxonomy' | 'archive' | 'quiz'>('notes');
   const [searchQuery, setSearchQuery] = useState<string>('');
   const [typeFilter, setTypeFilter] = useState<string>('all');
   const [tagFilter, setTagFilter] = useState<string | null>(null);
@@ -52,7 +58,77 @@ export default function App() {
     setTimeout(() => setToastMessage(null), 3000);
   };
 
+  // Authenticated fetch helper
+  const authFetch = useCallback(
+    async (url: string, options: RequestInit = {}) => {
+      const headers = new Headers(options.headers || {});
+      if (token) {
+        headers.set('Authorization', `Bearer ${token}`);
+      }
+      const response = await fetch(url, { ...options, headers });
+      if (response.status === 401) {
+        // Token expired or invalid
+        localStorage.removeItem('smartnotes_auth_token');
+        setToken(null);
+        setCurrentUser(null);
+        showToast('Session expired. Please sign in again.');
+      }
+      return response;
+    },
+    [token]
+  );
+
+  // Verify initial token
+  useEffect(() => {
+    let isMounted = true;
+
+    async function checkAuth() {
+      if (!token) {
+        if (isMounted) setIsAuthChecking(false);
+        return;
+      }
+
+      try {
+        const res = await fetch('/api/auth/me', {
+          headers: { Authorization: `Bearer ${token}` }
+        });
+
+        if (res.ok) {
+          const data = await res.json();
+          if (isMounted) setCurrentUser(data.user);
+        } else {
+          localStorage.removeItem('smartnotes_auth_token');
+          if (isMounted) {
+            setToken(null);
+            setCurrentUser(null);
+          }
+        }
+      } catch {
+        localStorage.removeItem('smartnotes_auth_token');
+        if (isMounted) {
+          setToken(null);
+          setCurrentUser(null);
+        }
+      } finally {
+        if (isMounted) setIsAuthChecking(false);
+      }
+    }
+
+    checkAuth();
+
+    return () => {
+      isMounted = false;
+    };
+  }, [token]);
+
+  // Load user-isolated workspace data
   const loadData = useCallback(async () => {
+    if (!currentUser || !token) {
+      setIsLoading(false);
+      return;
+    }
+
+    setIsLoading(true);
     try {
       const params = new URLSearchParams();
       if (searchQuery.trim()) params.append('search', searchQuery.trim());
@@ -62,9 +138,9 @@ export default function App() {
       params.append('archived', 'false');
 
       const [notesRes, statsRes, tagsRes] = await Promise.all([
-        fetch(`/api/notes?${params.toString()}`),
-        fetch('/api/stats'),
-        fetch('/api/tags')
+        authFetch(`/api/notes?${params.toString()}`),
+        authFetch('/api/stats'),
+        authFetch('/api/tags')
       ]);
 
       if (notesRes.ok) {
@@ -80,15 +156,53 @@ export default function App() {
         setTags(tagsData);
       }
     } catch (err) {
-      console.error('Error loading notes data:', err);
+      console.error('Error loading user notes data:', err);
     } finally {
       setIsLoading(false);
     }
-  }, [searchQuery, typeFilter, tagFilter]);
+  }, [currentUser, token, searchQuery, typeFilter, tagFilter, authFetch]);
 
   useEffect(() => {
-    loadData();
-  }, [loadData]);
+    if (currentUser) {
+      loadData();
+    }
+  }, [currentUser, loadData]);
+
+  // Handle successful sign in / sign up
+  const handleAuthSuccess = (authData: AuthResponse) => {
+    localStorage.setItem('smartnotes_auth_token', authData.token);
+    setToken(authData.token);
+    setCurrentUser(authData.user);
+    showToast(`Welcome, ${authData.user.name}!`);
+  };
+
+  // Handle logout
+  const handleLogout = async () => {
+    try {
+      if (token) {
+        await fetch('/api/auth/logout', {
+          method: 'POST',
+          headers: { Authorization: `Bearer ${token}` }
+        });
+      }
+    } catch {
+      // Ignore network errors on logout
+    } finally {
+      localStorage.removeItem('smartnotes_auth_token');
+      setToken(null);
+      setCurrentUser(null);
+      setNotes([]);
+      setSelectedNote(null);
+      setIsDetailOpen(false);
+      setIsIngestionOpen(false);
+      showToast('Signed out of workspace.');
+    }
+  };
+
+  // Handle switch user
+  const handleSwitchUser = () => {
+    handleLogout();
+  };
 
   const handleToggleActionItem = async (noteId: string, actionId: string) => {
     // Optimistic UI update
@@ -117,14 +231,14 @@ export default function App() {
     }
 
     try {
-      const res = await fetch(`/api/notes/${noteId}/action-items/${actionId}/toggle`, {
+      const res = await authFetch(`/api/notes/${noteId}/action-items/${actionId}/toggle`, {
         method: 'POST'
       });
       if (!res.ok) throw new Error('Failed to toggle on server');
       const updatedNote: SmartNote = await res.json();
 
       // Refresh stats
-      fetch('/api/stats')
+      authFetch('/api/stats')
         .then((r) => r.json())
         .then((s) => setStats(s))
         .catch(() => {});
@@ -140,7 +254,7 @@ export default function App() {
 
   const handleToggleArchive = async (noteId: string) => {
     try {
-      const res = await fetch(`/api/notes/${noteId}/archive`, {
+      const res = await authFetch(`/api/notes/${noteId}/archive`, {
         method: 'POST'
       });
       if (!res.ok) throw new Error('Failed to update archive status');
@@ -166,7 +280,7 @@ export default function App() {
 
   const handleUpdateNote = async (noteId: string, updates: Partial<SmartNote>) => {
     try {
-      const res = await fetch(`/api/notes/${noteId}`, {
+      const res = await authFetch(`/api/notes/${noteId}`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(updates)
@@ -181,8 +295,8 @@ export default function App() {
       showToast('Note updated successfully');
 
       // Refresh tags and stats
-      fetch('/api/tags').then((r) => r.json()).then(setTags).catch(() => {});
-      fetch('/api/stats').then((r) => r.json()).then(setStats).catch(() => {});
+      authFetch('/api/tags').then((r) => r.json()).then(setTags).catch(() => {});
+      authFetch('/api/stats').then((r) => r.json()).then(setStats).catch(() => {});
     } catch (err) {
       console.error('Error updating note:', err);
       showToast('Failed to update note');
@@ -192,7 +306,7 @@ export default function App() {
   const handleRegenerateNote = async (noteId: string) => {
     try {
       showToast('Generating comprehensive student study notes with Gemini 3.8 Flash...');
-      const res = await fetch(`/api/notes/${noteId}/regenerate`, {
+      const res = await authFetch(`/api/notes/${noteId}/regenerate`, {
         method: 'POST'
       });
       if (!res.ok) throw new Error('Failed to regenerate study notes');
@@ -212,7 +326,7 @@ export default function App() {
 
   const handleDeleteNote = async (noteId: string) => {
     try {
-      const res = await fetch(`/api/notes/${noteId}`, {
+      const res = await authFetch(`/api/notes/${noteId}`, {
         method: 'DELETE'
       });
       if (!res.ok) throw new Error('Failed to delete note');
@@ -245,6 +359,32 @@ export default function App() {
     setActiveView('notes');
   };
 
+  // Render loading screen during initial session verification
+  if (isAuthChecking) {
+    return (
+      <div className="min-h-screen bg-slate-50 flex flex-col items-center justify-center">
+        <Loader2 className="w-8 h-8 text-blue-600 animate-spin mb-3" />
+        <p className="text-xs text-slate-500 font-medium tracking-wide">
+          Verifying secure workspace session...
+        </p>
+      </div>
+    );
+  }
+
+  // Render Authentication Page if not authenticated
+  if (!currentUser) {
+    return (
+      <>
+        {toastMessage && (
+          <div className="fixed bottom-5 right-5 z-50 bg-slate-900 text-white text-xs font-medium px-4 py-2.5 rounded-lg shadow-lg flex items-center gap-2 animate-fade-in">
+            <span>{toastMessage}</span>
+          </div>
+        )}
+        <AuthPage onAuthSuccess={handleAuthSuccess} />
+      </>
+    );
+  }
+
   return (
     <div className="min-h-screen bg-slate-50 flex flex-col font-sans">
       {/* Toast alert */}
@@ -263,6 +403,9 @@ export default function App() {
         onOpenNewNote={() => setIsIngestionOpen(true)}
         pendingActionsCount={stats.pendingActionItems}
         archivedCount={stats.archivedNotes || 0}
+        currentUser={currentUser}
+        onLogout={handleLogout}
+        onSwitchUser={handleSwitchUser}
       />
 
       {/* Main Workspace Viewport */}
@@ -290,7 +433,7 @@ export default function App() {
                   <button
                     key={item.id}
                     onClick={() => setTypeFilter(item.id)}
-                    className={`px-3 py-1.5 text-xs font-semibold rounded-md transition-colors whitespace-nowrap shrink-0 ${
+                    className={`px-3 py-1.5 text-xs font-semibold rounded-md transition-colors whitespace-nowrap shrink-0 cursor-pointer ${
                       typeFilter === item.id
                         ? 'bg-white text-slate-900 shadow-xs'
                         : 'text-slate-600 hover:text-slate-900'
@@ -308,7 +451,7 @@ export default function App() {
                     <span>Tag: #{tagFilter}</span>
                     <button
                       onClick={() => setTagFilter(null)}
-                      className="hover:text-blue-900"
+                      className="hover:text-blue-900 cursor-pointer"
                     >
                       <X className="w-3.5 h-3.5" />
                     </button>
@@ -327,7 +470,7 @@ export default function App() {
                   {searchQuery && (
                     <button
                       onClick={() => setSearchQuery('')}
-                      className="absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600"
+                      className="absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 cursor-pointer"
                     >
                       <X className="w-3.5 h-3.5" />
                     </button>
@@ -337,7 +480,7 @@ export default function App() {
                 <button
                   onClick={loadData}
                   title="Refresh notes"
-                  className="p-2 text-slate-500 hover:text-slate-800 hover:bg-slate-100 rounded-lg transition-colors border border-slate-200"
+                  className="p-2 text-slate-500 hover:text-slate-800 hover:bg-slate-100 rounded-lg transition-colors border border-slate-200 cursor-pointer"
                 >
                   <RefreshCw className="w-4 h-4" />
                 </button>
@@ -366,12 +509,12 @@ export default function App() {
                 <h3 className="text-base font-semibold text-slate-800">
                   {searchQuery || tagFilter || typeFilter !== 'all'
                     ? 'No notes match your filters'
-                    : 'No active smart notes found'}
+                    : 'Your private workspace is empty'}
                 </h3>
                 <p className="text-xs text-slate-500 mt-1 mb-6">
                   {searchQuery || tagFilter || typeFilter !== 'all'
                     ? 'Try clearing your search query or switching source filters.'
-                    : 'Start by recording a voice memo, taking a camera photo of handwritten notes, or uploading a PDF document.'}
+                    : 'Start capturing your thoughts, recording voice memos, scanning whiteboard notes, or uploading PDFs.'}
                 </p>
 
                 {searchQuery || tagFilter || typeFilter !== 'all' ? (
@@ -381,7 +524,7 @@ export default function App() {
                       setTagFilter(null);
                       setTypeFilter('all');
                     }}
-                    className="px-4 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-semibold rounded-lg transition-colors"
+                    className="px-4 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-semibold rounded-lg transition-colors cursor-pointer"
                   >
                     Clear All Filters
                   </button>
@@ -389,7 +532,7 @@ export default function App() {
                   <div className="flex flex-wrap items-center justify-center gap-3">
                     <button
                       onClick={() => setIsIngestionOpen(true)}
-                      className="inline-flex items-center gap-1.5 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white text-xs font-semibold rounded-lg shadow-sm"
+                      className="inline-flex items-center gap-1.5 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white text-xs font-semibold rounded-lg shadow-sm cursor-pointer"
                     >
                       <Plus className="w-3.5 h-3.5" />
                       <span>Create First Note</span>
@@ -451,6 +594,24 @@ export default function App() {
             }}
             onRestoreNote={handleToggleArchive}
             onDeletePermanently={handleDeleteNote}
+            authToken={token}
+          />
+        )}
+
+        {activeView === 'quiz' && (
+          <QuizPracticeView
+            notes={notes}
+            authToken={token}
+            onNoteUpdated={(updatedNote) => {
+              setNotes((prev) => prev.map((n) => (n.id === updatedNote.id ? updatedNote : n)));
+              if (selectedNote && selectedNote.id === updatedNote.id) {
+                setSelectedNote(updatedNote);
+              }
+            }}
+            onOpenNoteDetail={(note) => {
+              setSelectedNote(note);
+              setIsDetailOpen(true);
+            }}
           />
         )}
       </main>
@@ -460,6 +621,7 @@ export default function App() {
         isOpen={isIngestionOpen}
         onClose={() => setIsIngestionOpen(false)}
         onNoteCreated={handleNoteCreated}
+        authToken={token}
       />
 
       {/* Note Detail Modal */}
@@ -475,11 +637,14 @@ export default function App() {
         onDeleteNote={handleDeleteNote}
         onToggleArchive={handleToggleArchive}
         onRegenerateNote={handleRegenerateNote}
+        onStartQuiz={(note) => {
+          setActiveView('quiz');
+        }}
       />
 
       {/* Clean Footer */}
       <footer className="mt-auto border-t border-slate-200 bg-white py-4 text-center text-xs text-slate-400">
-        <p>SmartNotes AI · Full-stack MERN with Gemini 3.8 Flash Multimodal Intelligence</p>
+        <p>SmartNotes AI · Private Multi-tenant Knowledge Base with Gemini 3.8 Flash</p>
       </footer>
     </div>
   );

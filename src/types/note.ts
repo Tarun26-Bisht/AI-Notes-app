@@ -7,8 +7,40 @@ export interface ActionItem {
   priority?: 'high' | 'medium' | 'low';
 }
 
+export interface User {
+  id: string;
+  name: string;
+  email: string;
+  avatarColor?: string;
+  createdAt: string;
+}
+
+export interface AuthResponse {
+  user: User;
+  token: string;
+}
+
+export interface QuizQuestion {
+  id: string;
+  question: string;
+  options: string[]; // 4 multiple choice options
+  correctIndex: number; // 0, 1, 2, or 3
+  explanation: string;
+  concept: string;
+}
+
+export interface QuizAttempt {
+  id: string;
+  timestamp: string;
+  score: number;
+  totalQuestions: number;
+  percentage: number;
+  userAnswers: Record<number, number>; // questionIndex -> selectedOptionIndex
+}
+
 export interface SmartNote {
   id: string;
+  userId: string;
   title: string;
   sourceType: NoteSourceType;
   originalFileName?: string;
@@ -23,6 +55,8 @@ export interface SmartNote {
   sentiment?: 'positive' | 'neutral' | 'urgent';
   estimatedReadTime?: string;
   isArchived?: boolean;
+  quiz?: QuizQuestion[];
+  quizAttempts?: QuizAttempt[];
 }
 
 export interface TagCount {
@@ -41,3 +75,4 @@ export interface WorkspaceStats {
   completedActionItems: number;
   pendingActionItems: number;
 }
+

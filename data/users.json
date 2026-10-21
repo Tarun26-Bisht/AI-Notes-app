@@ -1,0 +1,29 @@
+[
+  {
+    "id": "usr_seed_alex",
+    "name": "Alex Morgan",
+    "email": "alex@example.com",
+    "passwordHash": "3020b53c70cff0234040049173e6c37b310fcfd38c4533ef556dc622a125a654e1c6cb8ede19c8460d148f7c9260bcd6a412e3d5b3c131b62ce833abe20b87f4",
+    "salt": "seed_salt_alex_99182",
+    "avatarColor": "#2563EB",
+    "createdAt": "2026-10-14T05:48:37.629Z"
+  },
+  {
+    "id": "usr_seed_sarah",
+    "name": "Sarah Chen",
+    "email": "sarah@example.com",
+    "passwordHash": "f0a823f42ed30406714ec545a0787b56fa793413a678460c50a170bba253833125978fd093ce97a5e3bcad8e039bb8fa0ac5acd8eb0d6904b4b360f68953962b",
+    "salt": "seed_salt_sarah_11823",
+    "avatarColor": "#7C3AED",
+    "createdAt": "2026-10-16T05:48:37.721Z"
+  },
+  {
+    "id": "usr_1792561739100_2q0f0",
+    "name": "David Miller",
+    "email": "user_1792561738883@test.com",
+    "passwordHash": "d1d11fbb5e3810e215bb126c786a8f161ea3c6629ed685e6771296860789fb4edb42719456fe9ae569becdb3851e1a8cb1059facd7ed0cde83200df9ac2a6aae",
+    "salt": "0643c4781d028065fa85e07d2d47bdd6",
+    "avatarColor": "#0891B2",
+    "createdAt": "2026-10-21T05:48:59.100Z"
+  }
+]

@@ -1,5 +1,43 @@
 [
   {
+    "id": "note_welcome_1792561739100",
+    "userId": "usr_1792561739100_2q0f0",
+    "title": "Welcome to Your Private Smart Notes Hub, David!",
+    "sourceType": "text",
+    "rawContent": "Welcome to your private AI Smart Notes Workspace. Every document, meeting audio recording, and camera OCR scan you upload is strictly scoped to your private dashboard. No other users can see your notes or action items.",
+    "executiveSummary": "# 🚀 Welcome to Your Personal Smart Notes Vault\n\n### 1. 🔒 100% Private & Isolated\nYour account has an isolated notes repository. Notes you capture via voice memos, camera OCR, PDF upload, or raw text are solely accessible when logged into this account.\n\n### 2. ⚡ Multi-Modal Capabilities\n• **Voice Recording (Mic)**: Verbatim lecture & meeting transcription with structured summaries.\n• **Camera OCR**: Digitize handwritten whiteboard notes, sketches, and physical notebook pages.\n• **PDF Analysis**: Transform academic textbooks, syllabi, and reports into revision guides with flashcards.\n\n### 3. 🎯 What to Do Next\nCheck the action items below to get started!",
+    "actionItems": [
+      {
+        "id": "act_w1_1792561739100",
+        "text": "Record your first voice memo or upload a PDF document",
+        "completed": false,
+        "priority": "high"
+      },
+      {
+        "id": "act_w2_1792561739100",
+        "text": "Organize notes using auto-generated topic tags",
+        "completed": false,
+        "priority": "medium"
+      },
+      {
+        "id": "act_w3_1792561739100",
+        "text": "Test user isolation by switching between accounts or logging out",
+        "completed": true,
+        "priority": "low"
+      }
+    ],
+    "tags": [
+      "Welcome",
+      "Guide",
+      "Private-Vault",
+      "Getting-Started"
+    ],
+    "createdAt": "2026-10-21T05:48:59.100Z",
+    "updatedAt": "2026-10-21T05:48:59.100Z",
+    "sentiment": "positive",
+    "estimatedReadTime": "1 min read"
+  },
+  {
     "id": "note_1792556434628_3jkh1",
     "title": "Comprehensive Python Programming: From Fundamentals to Modular Architecture and Exception Handling",
     "sourceType": "pdf",
@@ -51,7 +89,8 @@
     "sentiment": "positive",
     "estimatedReadTime": "15 min read",
     "createdAt": "2026-10-21T04:20:34.628Z",
-    "updatedAt": "2026-10-21T04:37:22.051Z"
+    "updatedAt": "2026-10-21T04:37:22.051Z",
+    "userId": "usr_seed_alex"
   },
   {
     "id": "note_1792556289423_jzwck",
@@ -98,7 +137,8 @@
     "sentiment": "neutral",
     "estimatedReadTime": "15 min read",
     "createdAt": "2026-10-21T04:18:09.423Z",
-    "updatedAt": "2026-10-21T04:18:49.218Z"
+    "updatedAt": "2026-10-21T04:18:49.218Z",
+    "userId": "usr_seed_alex"
   },
   {
     "id": "note_seed_audio_1",
@@ -144,7 +184,8 @@
     "createdAt": "2026-10-19T04:16:05.932Z",
     "updatedAt": "2026-10-19T04:16:05.932Z",
     "sentiment": "urgent",
-    "estimatedReadTime": "2 min read"
+    "estimatedReadTime": "2 min read",
+    "userId": "usr_seed_alex"
   },
   {
     "id": "note_seed_hw_2",
@@ -183,7 +224,8 @@
     "createdAt": "2026-10-20T04:16:05.932Z",
     "updatedAt": "2026-10-20T04:16:05.932Z",
     "sentiment": "positive",
-    "estimatedReadTime": "3 min read"
+    "estimatedReadTime": "3 min read",
+    "userId": "usr_seed_alex"
   },
   {
     "id": "note_seed_pdf_3",
@@ -224,6 +266,163 @@
     "updatedAt": "2026-10-21T04:26:40.031Z",
     "sentiment": "neutral",
     "estimatedReadTime": "4 min read",
-    "isArchived": false
+    "isArchived": false,
+    "userId": "usr_seed_alex"
+  },
+  {
+    "id": "note_seed_sarah_1",
+    "userId": "usr_seed_sarah",
+    "title": "CS 301 Study Guide: Self-Balancing AVL Trees & Rotations",
+    "sourceType": "pdf",
+    "originalFileName": "AVL_Trees_Lecture_Notes.pdf",
+    "mediaMimeType": "application/pdf",
+    "rawContent": "[CS 301 Advanced Data Structures - Lecture 7 Excerpt]\nTopic: AVL Tree Height Balancing\nDefinition: An AVL tree is a self-balancing Binary Search Tree where the difference between heights of left and right subtrees for any node cannot exceed 1.\nBalance Factor = Height(Left Subtree) - Height(Right Subtree) in {-1, 0, 1}.\nWhen an insertion violates balance:\n1. Left-Left (LL) Case -> Perform single Right Rotation.\n2. Right-Right (RR) Case -> Perform single Left Rotation.\n3. Left-Right (LR) Case -> Left rotate child, then Right rotate parent.\n4. Right-Left (RL) Case -> Right rotate child, then Left rotate parent.\nTime Complexity: O(log N) for Search, Insert, and Delete.",
+    "executiveSummary": "# 🎓 Master Student Study Guide: Self-Balancing AVL Trees\n\n### 1. 🎯 Big-Picture Intuition & Core Overview\nUnbalanced binary search trees can degrade to O(N) linear linked lists in worst-case scenarios. AVL trees guarantee logarithmic O(log N) worst-case time by enforcing height equilibrium through deterministic rotations.\n\n### 2. 📖 Core Terminology & Key Definitions\n• **Balance Factor (BF)**: The difference between the height of the left subtree and right subtree (BF = Height(L) - Height(R)). An AVL node is valid if BF is -1, 0, or +1.\n• **Rebalancing Rotations**: O(1) pointer updates that restore height parity without violating binary search ordering.\n\n### 3. 📚 In-Depth Rotation Breakdown\n• **LL Case**: Node has BF = +2 and left child has BF >= 0. Fix via single right rotation.\n• **RR Case**: Node has BF = -2 and right child has BF <= 0. Fix via single left rotation.\n• **LR Case**: Zig-Zag shape. Left rotate left child, then right rotate unbalanced ancestor.\n• **RL Case**: Zig-Zag shape. Right rotate right child, then left rotate unbalanced ancestor.\n\n### 4. 💡 Exam Revision Tips & Common Pitfalls\n• Remember to recalculate heights from the inserted leaf upward to the root. Stop rotating as soon as the first unbalanced ancestor is corrected.",
+    "actionItems": [
+      {
+        "id": "act_s1",
+        "text": "Practice drawing LR and RL double rotation steps for exam question 3",
+        "completed": false,
+        "priority": "high"
+      },
+      {
+        "id": "act_s2",
+        "text": "Implement AVL tree node class in Python with height cache",
+        "completed": true,
+        "priority": "medium"
+      },
+      {
+        "id": "act_s3",
+        "text": "Compare Red-Black Tree vs AVL Tree insertion overhead",
+        "completed": false,
+        "priority": "low"
+      }
+    ],
+    "tags": [
+      "Data-Structures",
+      "Computer-Science",
+      "Algorithms",
+      "Exam-Prep"
+    ],
+    "createdAt": "2026-10-20T05:48:37.721Z",
+    "updatedAt": "2026-10-21T06:18:53.020Z",
+    "sentiment": "positive",
+    "estimatedReadTime": "3 min read",
+    "quiz": [
+      {
+        "id": "q_1792563533020_0_rqig",
+        "question": "Suppose an insertion into an AVL tree causes node P to have a balance factor of +2, where Balance Factor = Height(Left) - Height(Right). Node P's left child, node C, has a balance factor of -1. Which of the following rotation procedures must be applied to rebalance the subtree rooted at P?",
+        "options": [
+          "A single right rotation on node P",
+          "A left rotation on node C, followed by a right rotation on node P",
+          "A right rotation on node C, followed by a left rotation on node P",
+          "A single left rotation on node P"
+        ],
+        "correctIndex": 1,
+        "explanation": "A node with BF = +2 is left-heavy. Because its left child has BF = -1 (right-heavy), this constitutes a Left-Right (LR) 'zig-zag' imbalance. According to AVL rotation rules, an LR imbalance is resolved by performing a double rotation: first a left rotation on the left child C, followed by a right rotation on the unbalanced parent node P.",
+        "concept": "AVL Left-Right (LR) Rotation"
+      },
+      {
+        "id": "q_1792563533020_1_yjon",
+        "question": "Starting with an initially empty AVL tree, the integer keys 30, 20, and 25 are inserted in that exact sequence. What is the structural configuration of the tree after all necessary rebalancing rotations are completed?",
+        "options": [
+          "25 becomes the root, with 20 as its left child and 30 as its right child.",
+          "30 remains the root, with 25 as its left child and 20 as 25's left child.",
+          "20 becomes the root, with 25 as its right child and 30 as 25's right child.",
+          "25 becomes the root, with 30 as its left child and 20 as its right child."
+        ],
+        "correctIndex": 0,
+        "explanation": "Inserting 30 makes it the root. Inserting 20 places it as the left child of 30. Inserting 25 places it as the right child of 20. At node 30, the balance factor becomes Height(Left) - Height(Right) = 2 - 0 = +2, while its left child (20) has a balance factor of 0 - 1 = -1. This triggers an LR double rotation: a left rotation at 20 brings 25 up, making 20 the left child of 25. Then, a right rotation at 30 brings 25 to the root, making 20 the left child and 30 the right child.",
+        "concept": "AVL Insertion and Rebalancing"
+      },
+      {
+        "id": "q_1792563533020_2_7tbz",
+        "question": "Which of the following statements accurately characterizes AVL tree properties, rotation mechanics, or time complexity?",
+        "options": [
+          "Restoring balance after an insertion can require a cascade of rotations spanning up to O(log N) distinct nodes along the ancestor path.",
+          "A balance factor of +1 indicates that the node's right subtree has a height strictly greater than its left subtree.",
+          "A single insertion requires at most one rebalancing operation (either a single or double rotation) to restore the AVL height-balance invariant.",
+          "In a Right-Left (RL) rotation, the unbalanced ancestor is left-rotated first, followed by a right rotation of the right child."
+        ],
+        "correctIndex": 2,
+        "explanation": "For an AVL insertion, rebalancing the lowest unbalanced ancestor via either a single or double rotation reduces the height of that subtree back to what it was prior to insertion. Consequently, no higher ancestors are disrupted, and at most one rotation operation is needed. Statement A is incorrect because insertion requires at most one rotation (unlike deletion, which can cascade). Statement B is incorrect because BF = Height(Left) - Height(Right), so +1 denotes a taller left subtree. Statement D describes an inverted order; an RL case requires a right rotation on the child followed by a left rotation on the ancestor.",
+        "concept": "AVL Insertion Invariants and Complexity"
+      }
+    ]
+  },
+  {
+    "id": "note_seed_sarah_2",
+    "userId": "usr_seed_sarah",
+    "title": "Study Session Voice Memo: Graph Traversal BFS vs DFS",
+    "sourceType": "audio",
+    "originalFileName": "graph-traversal-memo.webm",
+    "mediaMimeType": "audio/webm",
+    "rawContent": "Speaker 1 (Sarah): Hey everyone, quick recap from Prof Davis's office hours today.\nBreadth-First Search uses a FIFO queue. It explores all neighbors layer by layer and is guaranteed to find the shortest path on unweighted graphs.\nDepth-First Search uses a LIFO stack (or recursion) and explores deep down a branch before backtracking. It's best for cycle detection, topological sorting, and solving mazes.\nRemember for topological sort, in-degrees must be tracked in Kahn's algorithm!",
+    "executiveSummary": "# 🎓 Lecture Study Notes: Graph Traversal Algorithms\n\n### 1. 🎯 Overview & Comparison\n• **BFS (Breadth-First Search)**: Uses a FIFO queue data structure. Optimal for unweighted shortest path queries.\n• **DFS (Depth-First Search)**: Uses a call stack / recursion. Optimal for topological sort and cycle detection.\n\n### 2. 📝 Active Recall Practice Quiz\nQ: Which traversal guarantees the shortest path in an unweighted graph?\nA: BFS, because it expands frontier uniformly level by level.",
+    "actionItems": [
+      {
+        "id": "act_s4",
+        "text": "Code Kahn algorithm for topological sort before Friday lab",
+        "completed": false,
+        "priority": "high"
+      },
+      {
+        "id": "act_s5",
+        "text": "Memorize BFS vs DFS time complexity O(V + E)",
+        "completed": true,
+        "priority": "medium"
+      }
+    ],
+    "tags": [
+      "Algorithms",
+      "Graphs",
+      "Lecture-Notes",
+      "Study-Group"
+    ],
+    "createdAt": "2026-10-20T17:48:37.721Z",
+    "updatedAt": "2026-10-21T06:22:13.979Z",
+    "sentiment": "neutral",
+    "estimatedReadTime": "2 min read",
+    "quiz": [
+      {
+        "id": "q_1792563733978_0_6tif",
+        "question": "A software engineer needs to find the minimum number of edge transitions between two servers in an unweighted network. Which traversal strategy and underlying data structure are guaranteed to find this shortest path efficiently?",
+        "options": [
+          "Depth-First Search (DFS) utilizing a LIFO call stack",
+          "Breadth-First Search (BFS) utilizing a FIFO queue",
+          "Depth-First Search (DFS) utilizing an in-degree counter",
+          "Breadth-First Search (BFS) utilizing a priority queue"
+        ],
+        "correctIndex": 1,
+        "explanation": "Breadth-First Search (BFS) explores the graph layer by layer using a First-In, First-Out (FIFO) queue. Because it expands the frontier uniformly outward from the source, the first time a target vertex is reached, the path taken is guaranteed to have the minimum number of edges in an unweighted graph. In contrast, DFS dives deeply along individual branches using a LIFO stack/recursion and does not guarantee finding the shortest path.",
+        "concept": "Shortest Path in Unweighted Graphs"
+      },
+      {
+        "id": "q_1792563733978_1_rmr1",
+        "question": "Based on the comparative strengths of graph traversals highlighted in the lecture, for which of the following tasks is Depth-First Search (DFS) specifically optimal over standard Breadth-First Search (BFS)?",
+        "options": [
+          "Computing the shortest path between two vertices in an unweighted graph",
+          "Cycle detection and topological sorting in a directed graph",
+          "Exploring neighboring nodes strictly in order of increasing distance",
+          "Uniformly expanding a search frontier level-by-level"
+        ],
+        "correctIndex": 1,
+        "explanation": "Depth-First Search (DFS) is optimal for cycle detection and topological sorting because its exploration mechanism follows paths to their deepest point before backtracking, mapping parent-child relationships and back edges. Finding shortest paths in unweighted graphs and exploring level-by-level are primary use cases for BFS.",
+        "concept": "DFS Applications"
+      },
+      {
+        "id": "q_1792563733978_2_ue2s",
+        "question": "When implementing Kahn's algorithm to perform a topological sort on a Directed Acyclic Graph (DAG), which graph metric must be actively tracked and updated as vertices are processed?",
+        "options": [
+          "The out-degrees of the vertices",
+          "The edge weights of incident arcs",
+          "The in-degrees of the vertices",
+          "The maximum depth of the recursive call stack"
+        ],
+        "correctIndex": 2,
+        "explanation": "Kahn's algorithm relies on tracking the in-degree (the number of incoming edges) of every vertex. Vertices with an in-degree of 0 have no dependencies and are processed first. As each vertex is removed from the queue, the in-degrees of its neighboring vertices are decremented. Tracking out-degrees or call stack depths does not fulfill Kahn's topological sorting algorithm requirements.",
+        "concept": "Kahn's Algorithm & In-Degrees"
+      }
+    ]
   }
 ]

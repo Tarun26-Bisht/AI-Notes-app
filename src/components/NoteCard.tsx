@@ -1,6 +1,6 @@
 import React from 'react';
 import { SmartNote } from '../types/note';
-import { Mic, FileText, Edit3, File, CheckSquare, Trash2, ArrowUpRight, Archive, RotateCcw } from 'lucide-react';
+import { Mic, FileText, Edit3, File, CheckSquare, Trash2, ArrowUpRight, Archive, RotateCcw, GraduationCap } from 'lucide-react';
 
 interface NoteCardProps {
   note: SmartNote;
@@ -8,6 +8,7 @@ interface NoteCardProps {
   onDelete: (e: React.MouseEvent) => void;
   onArchive?: (e: React.MouseEvent) => void;
   onTagClick?: (tag: string, e: React.MouseEvent) => void;
+  onStartQuiz?: (note: SmartNote, e: React.MouseEvent) => void;
 }
 
 export const NoteCard: React.FC<NoteCardProps> = ({
@@ -15,7 +16,8 @@ export const NoteCard: React.FC<NoteCardProps> = ({
   onClick,
   onDelete,
   onArchive,
-  onTagClick
+  onTagClick,
+  onStartQuiz
 }) => {
   const getSourceIcon = () => {
     switch (note.sourceType) {
@@ -132,17 +134,45 @@ export const NoteCard: React.FC<NoteCardProps> = ({
         )}
 
         {/* Footer info: Action Items & Read prompt */}
-        <div className="flex items-center justify-between text-xs text-slate-500">
-          {totalActions > 0 ? (
-            <span className="flex items-center gap-1 font-mono tabular-nums text-slate-700">
-              <CheckSquare className="w-3.5 h-3.5 text-slate-400" />
-              <span>
-                {completedCount}/{totalActions} tasks done
+        <div className="flex items-center justify-between text-xs text-slate-500 pt-1">
+          <div className="flex items-center gap-2">
+            {totalActions > 0 ? (
+              <span className="flex items-center gap-1 font-mono tabular-nums text-slate-700">
+                <CheckSquare className="w-3.5 h-3.5 text-slate-400" />
+                <span>
+                  {completedCount}/{totalActions}
+                </span>
               </span>
-            </span>
-          ) : (
-            <span className="text-slate-400">No action items</span>
-          )}
+            ) : (
+              <span className="text-slate-400">0 tasks</span>
+            )}
+
+            {note.quiz && note.quiz.length > 0 ? (
+              <button
+                onClick={(e) => {
+                  e.stopPropagation();
+                  onStartQuiz?.(note, e);
+                }}
+                title="Practice Exam MCQs for this note"
+                className="inline-flex items-center gap-1 text-[11px] font-bold text-purple-700 bg-purple-50 hover:bg-purple-100 border border-purple-200/80 px-2 py-0.5 rounded-md transition-colors cursor-pointer"
+              >
+                <GraduationCap className="w-3 h-3 text-purple-600" />
+                <span>{note.quiz.length} MCQs</span>
+              </button>
+            ) : note.sourceType === 'pdf' ? (
+              <button
+                onClick={(e) => {
+                  e.stopPropagation();
+                  onStartQuiz?.(note, e);
+                }}
+                title="Generate Exam MCQs for this PDF"
+                className="inline-flex items-center gap-1 text-[11px] font-semibold text-slate-500 hover:text-purple-700 hover:bg-purple-50 border border-slate-200 hover:border-purple-200 px-2 py-0.5 rounded-md transition-colors cursor-pointer"
+              >
+                <GraduationCap className="w-3 h-3 text-purple-600" />
+                <span>Quiz</span>
+              </button>
+            ) : null}
+          </div>
 
           <span className="inline-flex items-center gap-0.5 text-blue-600 font-medium group-hover:translate-x-0.5 transition-transform">
             <span>{note.isArchived ? 'View' : 'Open'}</span>

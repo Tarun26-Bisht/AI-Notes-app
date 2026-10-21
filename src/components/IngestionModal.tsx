@@ -9,9 +9,10 @@ interface IngestionModalProps {
   isOpen: boolean;
   onClose: () => void;
   onNoteCreated: (note: SmartNote) => void;
+  authToken?: string | null;
 }
 
-export const IngestionModal: React.FC<IngestionModalProps> = ({ isOpen, onClose, onNoteCreated }) => {
+export const IngestionModal: React.FC<IngestionModalProps> = ({ isOpen, onClose, onNoteCreated, authToken }) => {
   const [activeTab, setActiveTab] = useState<'audio' | 'camera' | 'upload' | 'text'>('audio');
   const [isProcessing, setIsProcessing] = useState<boolean>(false);
   const [processStep, setProcessStep] = useState<string>('');
@@ -44,9 +45,14 @@ export const IngestionModal: React.FC<IngestionModalProps> = ({ isOpen, onClose,
         setProcessStep('Analyzing content & structuring pedagogical revision guide...');
       }
 
+      const headers: Record<string, string> = { 'Content-Type': 'application/json' };
+      if (authToken) {
+        headers['Authorization'] = `Bearer ${authToken}`;
+      }
+
       const res = await fetch('/api/ai/process-note', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers,
         body: JSON.stringify(payload)
       });
 

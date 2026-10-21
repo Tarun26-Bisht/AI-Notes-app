@@ -32,6 +32,7 @@ interface NoteDetailModalProps {
   onDeleteNote: (noteId: string) => void;
   onToggleArchive?: (noteId: string) => void;
   onRegenerateNote?: (noteId: string) => Promise<void>;
+  onStartQuiz?: (note: SmartNote) => void;
 }
 
 export const NoteDetailModal: React.FC<NoteDetailModalProps> = ({
@@ -42,7 +43,8 @@ export const NoteDetailModal: React.FC<NoteDetailModalProps> = ({
   onUpdateNote,
   onDeleteNote,
   onToggleArchive,
-  onRegenerateNote
+  onRegenerateNote,
+  onStartQuiz
 }) => {
   const [activeTab, setActiveTab] = useState<'summary' | 'transcript' | 'media'>('summary');
   const [copied, setCopied] = useState<boolean>(false);
@@ -222,6 +224,26 @@ ${note.rawContent}
               {copied ? <Check className="w-4 h-4 text-emerald-600" /> : <Copy className="w-4 h-4" />}
               <span className="hidden sm:inline">{copied ? 'Copied' : 'Copy'}</span>
             </button>
+
+            {onStartQuiz && (
+              <button
+                onClick={() => {
+                  onStartQuiz(note);
+                  onClose();
+                }}
+                title="Practice Exam Quiz for this note"
+                className="px-3 py-1.5 bg-purple-600 hover:bg-purple-700 text-white rounded-lg transition-colors text-xs font-semibold flex items-center gap-1.5 shadow-xs cursor-pointer"
+              >
+                <GraduationCap className="w-4 h-4" />
+                <span className="hidden sm:inline">Practice Exam Quiz</span>
+                <span className="sm:hidden">Quiz</span>
+                {note.quiz && note.quiz.length > 0 && (
+                  <span className="bg-purple-800 text-white text-[10px] px-1.5 py-0.2 rounded-full font-bold">
+                    {note.quiz.length}
+                  </span>
+                )}
+              </button>
+            )}
 
             {onRegenerateNote && (
               <button

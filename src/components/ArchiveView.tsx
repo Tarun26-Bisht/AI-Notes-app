@@ -7,12 +7,14 @@ interface ArchiveViewProps {
   onSelectNote: (note: SmartNote) => void;
   onRestoreNote: (noteId: string) => void;
   onDeletePermanently: (noteId: string) => void;
+  authToken?: string | null;
 }
 
 export const ArchiveView: React.FC<ArchiveViewProps> = ({
   onSelectNote,
   onRestoreNote,
-  onDeletePermanently
+  onDeletePermanently,
+  authToken
 }) => {
   const [archivedNotes, setArchivedNotes] = useState<SmartNote[]>([]);
   const [isLoading, setIsLoading] = useState<boolean>(true);
@@ -27,7 +29,11 @@ export const ArchiveView: React.FC<ArchiveViewProps> = ({
       if (searchQuery.trim()) params.append('search', searchQuery.trim());
       if (typeFilter && typeFilter !== 'all') params.append('type', typeFilter);
 
-      const res = await fetch(`/api/notes?${params.toString()}`);
+      const token = authToken || localStorage.getItem('smartnotes_auth_token');
+      const headers: Record<string, string> = {};
+      if (token) headers['Authorization'] = `Bearer ${token}`;
+
+      const res = await fetch(`/api/notes?${params.toString()}`, { headers });
       if (res.ok) {
         const data = await res.json();
         setArchivedNotes(data);
@@ -37,7 +43,7 @@ export const ArchiveView: React.FC<ArchiveViewProps> = ({
     } finally {
       setIsLoading(false);
     }
-  }, [searchQuery, typeFilter]);
+  }, [searchQuery, typeFilter, authToken]);
 
   useEffect(() => {
     loadArchivedNotes();
