@@ -1,0 +1,227 @@
+import { GoogleGenAI, Type } from '@google/genai';
+import { ActionItem, NoteSourceType, SmartNote } from '../src/types/note.js';
+
+// Server-side initialization with required telemetry header
+const ai = new GoogleGenAI({
+  apiKey: process.env.GEMINI_API_KEY,
+  httpOptions: {
+    headers: {
+      'User-Agent': 'aistudio-build'
+    }
+  }
+});
+
+export interface ProcessNoteInput {
+  sourceType: NoteSourceType;
+  fileBase64?: string;
+  mimeType?: string;
+  fileName?: string;
+  textContent?: string;
+  studyStyle?: 'student' | 'executive';
+}
+
+interface AIOutputSchema {
+  title: string;
+  rawContent: string;
+  executiveSummary: string;
+  actionItems: Array<{
+    text: string;
+    priority?: 'high' | 'medium' | 'low';
+  }>;
+  tags: string[];
+  sentiment?: 'positive' | 'neutral' | 'urgent';
+  estimatedReadTime?: string;
+}
+
+export async function processNoteWithGemini(input: ProcessNoteInput): Promise<Omit<SmartNote, 'id' | 'createdAt' | 'updatedAt'>> {
+  const { sourceType, fileBase64, mimeType, fileName, textContent, studyStyle = 'student' } = input;
+
+  let promptInstruction = '';
+  const parts: Array<{ text: string } | { inlineData: { mimeType: string; data: string } }> = [];
+
+  if (sourceType === 'pdf') {
+    promptInstruction = `You are a world-class university educator, professor, and master academic tutor.
+Your mission is to transform the provided PDF document (textbook chapter, lecture slides, research paper, syllabus, or academic notes) into comprehensive, high-yield student study notes that are crystal-clear, deeply informative, and ideal for exam preparation.
+
+Ensure the notes in 'executiveSummary' are thorough, complete, and written in rich, structured Markdown:
+# 🎓 Master Student Study Guide: [Concise Course/Topic Name]
+
+### 1. 🎯 Big-Picture Intuition & Core Overview
+Explain the core subject in plain, relatable English so any student can grasp why this topic matters and the real-world problems it solves. Include an intuitive analogy.
+
+### 2. 📖 Core Terminology & Key Definitions (Glossary)
+Define every critical concept, variable, or technical term introduced in the document with bold titles and intuitive explanations.
+
+### 3. 📚 In-Depth Topic Breakdown
+Break down every major concept and section from the PDF thoroughly:
+- Explain mechanisms, algorithms, processes, and concepts step-by-step with clear subheadings.
+- Use bullet points, bold emphasis on key phrases, and concrete real-world examples.
+- Explain things so thoroughly that a student does NOT need to struggle through the dense original PDF to understand the material.
+
+### 4. ⚡ Key Formulas, Rules, Theorems & Code (if applicable)
+Highlight any mathematical equations, scientific rules, or code snippets with clear explanations of what each component means.
+
+### 5. 💡 Exam Revision Tips & Common Pitfalls
+Highlight tricky concepts where students frequently lose points, common misconceptions, and tips for answering exam questions.
+
+### 6. 📝 Active Recall Practice Quiz
+Provide 3-5 self-test questions with clear, concise answers so students can test their retention immediately.
+
+For 'actionItems':
+Generate 3-6 actionable student study tasks (e.g. "Review Section 2: Memory Hierarchy differences", "Memorize definitions of Page Faults and Thrashing", "Practice calculating Big-O complexity").
+
+For 'title':
+Provide a clear, academic title indicating the course topic or chapter (e.g. "Operating Systems: Virtual Memory & Page Replacement Algorithms").
+
+For 'rawContent':
+Extract or outline the original text, chapter headings, and key excerpts from the PDF accurately.
+
+For 'tags':
+Generate 4-6 academic subject and topic tags (e.g. "Computer Science", "Operating Systems", "Exam Prep", "Lecture Notes").`;
+  } else if (sourceType === 'audio') {
+    promptInstruction = `You are a master academic educator and lecture scribe.
+Analyze the provided audio recording (lecture, study group, or discussion memo).
+1. Transcribe the speech faithfully into clean readable text for 'rawContent' (indicate speakers if identifiable).
+2. Synthesize an in-depth student study guide for 'executiveSummary' formatted in structured Markdown:
+   - # 🎓 Lecture Study Notes: [Topic]
+   - ### 1. 🎯 Core Concepts & Big Picture
+   - ### 2. 📖 Key Definitions
+   - ### 3. 📚 In-Depth Topic Discussion & Examples
+   - ### 4. 💡 Exam Tips & Key Takeaways
+   - ### 5. 📝 Active Recall Review Questions
+3. Extract concrete study follow-ups or deliverables as 'actionItems'.
+4. Auto-generate 4-6 academic taxonomy tags.
+5. Provide a descriptive, academic 'title'.`;
+  } else if (sourceType === 'handwritten') {
+    promptInstruction = `You are an expert academic tutor and handwriting OCR specialist.
+Analyze the provided image of handwritten notes, sketches, or whiteboard diagrams.
+1. Transcribe all handwritten text, annotations, diagrams, and formulas accurately into 'rawContent'.
+2. Synthesize a comprehensive student study guide for 'executiveSummary' in clean Markdown:
+   - # 🎓 Digitized Notes: [Topic]
+   - ### 1. 🎯 Overview & Main Idea
+   - ### 2. 📖 Key Concepts & Formula Derivations
+   - ### 3. 📚 Structured Breakdown & Diagram Interpretations
+   - ### 4. 💡 Study Tips & Next Steps
+3. Extract discrete actionable tasks or study follow-ups as 'actionItems'.
+4. Auto-generate 4-6 categorization tags.
+5. Provide a crisp, academic 'title'.`;
+  } else {
+    // Text / Markdown
+    promptInstruction = `You are a master academic educator.
+Analyze the provided text notes and transform them into structured student study notes:
+1. Retain or clean up the full body for 'rawContent'.
+2. Provide an in-depth student study guide for 'executiveSummary' with Big-Picture Intuition, Key Definitions, Topic Breakdown, and Review Questions.
+3. Extract all explicit or implied study action items.
+4. Generate 4-6 relevant categorization tags.
+5. Provide a clear, polished 'title'.`;
+  }
+
+  // Add media part if base64 file is provided
+  if (fileBase64 && mimeType) {
+    // Strip data URL prefix if included (e.g. data:image/png;base64,...)
+    const cleanBase64 = fileBase64.includes(',') ? fileBase64.split(',')[1] : fileBase64;
+    parts.push({
+      inlineData: {
+        mimeType: mimeType,
+        data: cleanBase64
+      }
+    });
+  }
+
+  // Add instructions
+  parts.push({
+    text: promptInstruction
+  });
+
+  try {
+    const response = await ai.models.generateContent({
+      model: 'gemini-3.8-flash',
+      contents: { parts },
+      config: {
+        systemInstruction: 'You are an elite university educator, professor, and master pedagogical author. Your goal is to generate thorough, crystal-clear, high-yield student study notes that students can learn from directly. Provide rich explanations, intuitive analogies, syntax/formula examples, key definitions, and active recall practice quizzes.',
+        responseMimeType: 'application/json',
+        responseSchema: {
+          type: Type.OBJECT,
+          properties: {
+            title: {
+              type: Type.STRING,
+              description: 'A crisp, academic course or topic title for the study notes'
+            },
+            rawContent: {
+              type: Type.STRING,
+              description: 'Detailed extracted text, chapter breakdown, or full transcript'
+            },
+            executiveSummary: {
+              type: Type.STRING,
+              description: 'Comprehensive, in-depth student revision guide and master study notes written in rich Markdown with Big-Picture Intuition, Glossary, detailed Unit/Chapter breakdowns, syntax and code examples, exam tips, common pitfalls, and active recall practice quiz with answers'
+            },
+            actionItems: {
+              type: Type.ARRAY,
+              items: {
+                type: Type.OBJECT,
+                properties: {
+                  text: { type: Type.STRING, description: 'Actionable task or next step' },
+                  priority: { type: Type.STRING, description: 'Priority level: high, medium, or low' }
+                },
+                required: ['text']
+              },
+              description: 'List of extracted action items'
+            },
+            tags: {
+              type: Type.ARRAY,
+              items: { type: Type.STRING },
+              description: '3 to 6 high-relevance categorization tags'
+            },
+            sentiment: {
+              type: Type.STRING,
+              description: 'Overall urgency or tone: positive, neutral, or urgent'
+            },
+            estimatedReadTime: {
+              type: Type.STRING,
+              description: 'Estimated reading time string, e.g. 2 min read'
+            }
+          },
+          required: ['title', 'rawContent', 'executiveSummary', 'actionItems', 'tags']
+        }
+      }
+    });
+
+    const text = response.text;
+    if (!text) {
+      throw new Error('Gemini API returned empty response');
+    }
+
+    const parsed: AIOutputSchema = JSON.parse(text);
+
+    // Map action items with unique IDs and completion flag
+    const actionItems: ActionItem[] = (parsed.actionItems || []).map((item, idx) => ({
+      id: `act_${Date.now()}_${idx}`,
+      text: item.text,
+      completed: false,
+      priority: item.priority === 'high' ? 'high' : item.priority === 'low' ? 'low' : 'medium'
+    }));
+
+    // Retain preview data URL for media playback or rendering
+    let mediaData: string | undefined = undefined;
+    if (fileBase64 && mimeType) {
+      mediaData = fileBase64.startsWith('data:') ? fileBase64 : `data:${mimeType};base64,${fileBase64}`;
+    }
+
+    return {
+      title: parsed.title || fileName || 'Untitled Note',
+      sourceType,
+      originalFileName: fileName,
+      mediaData,
+      mediaMimeType: mimeType,
+      rawContent: parsed.rawContent || textContent || '',
+      executiveSummary: parsed.executiveSummary || '',
+      actionItems,
+      tags: (parsed.tags || []).map((t) => t.replace(/^#/, '').trim()),
+      sentiment: parsed.sentiment === 'urgent' || parsed.sentiment === 'positive' ? parsed.sentiment : 'neutral',
+      estimatedReadTime: parsed.estimatedReadTime || '2 min read'
+    };
+  } catch (error: any) {
+    console.error('Error processing note with Gemini 3.8 Flash:', error);
+    throw new Error(error?.message || 'Failed to analyze note with AI');
+  }
+}

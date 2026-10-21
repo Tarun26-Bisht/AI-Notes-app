@@ -1,0 +1,6 @@
+{
+  "name": "AI-Powered Smart Notes Organizer",
+  "description": "AI-driven notes organizer that transforms handwritten notes, PDFs, and audio recordings into auto-tagged, summarized, and searchable knowledge cards with actionable insights.",
+  "requestFramePermissions": ["camera", "microphone"],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
